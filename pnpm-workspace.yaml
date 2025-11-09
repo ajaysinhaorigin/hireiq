@@ -1,4 +1,4 @@
 packages:
-  - "apps/*/*"    # all frontend & backend apps
   - "apps/*"    # all frontend & backend apps
+  - "apps/*/*"    # all frontend & backend apps
   - "packages/*"  # shared libraries

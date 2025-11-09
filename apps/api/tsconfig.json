@@ -20,6 +20,12 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@hireiq/shared": ["../../../packages/shared/src"],
+      "@hireiq/ui": ["../../../packages/ui/src"],
+      "@hireiq/db": ["../../../packages/db/src"]
+    }
   }
 }

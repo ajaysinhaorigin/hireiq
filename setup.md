@@ -167,7 +167,6 @@ Fast: Optimized infra (Vercel + managed DBs).
     pnpm prisma migrate dev --name init
     pnpm prisma generate
 
-
     cd ui
     mkdir src
     
