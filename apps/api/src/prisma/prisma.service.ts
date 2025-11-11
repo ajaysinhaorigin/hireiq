@@ -1,17 +1,15 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { prisma } from '@hireiq/db';
+import { PrismaClient } from '@hireiq/db';
 
 @Injectable()
-export class PrismaService implements OnModuleInit, OnModuleDestroy {
+export class PrismaService extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   async onModuleInit() {
-    await prisma.$connect();
+    await this.$connect();
   }
 
   async onModuleDestroy() {
-    await prisma.$disconnect();
-  }
-
-  get client() {
-    return prisma;
+    await this.$disconnect();
   }
 }

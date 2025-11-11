@@ -62,7 +62,7 @@ hireiq_db=#
 
 Type \q to exit.
 
-## steps to run 
+# Steps to run 
 
 1. first
 
