@@ -35,3 +35,10 @@ Apply all migrations again
 You’re in development, not production.
 You want to start clean (e.g., you changed models and migrations are messy).
 You don’t care about losing existing DB data.
+
+# steps
+
+npx prisma migrate reset  
+pnpm run db:migrate  
+npx prisma migrate dev --name init
+pnpm run db:reset     
