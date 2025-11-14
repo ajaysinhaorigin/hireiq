@@ -14,7 +14,10 @@ export const multerConfig: MulterModuleOptions = {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (req, file, callback) => {
-    // Add file type validation if needed
+    // Validate image types
+    if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+      return callback(new Error('Only image files are allowed!'), false);
+    }
     callback(null, true);
   },
 };

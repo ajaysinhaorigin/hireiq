@@ -17,7 +17,7 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, file?: any) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -26,11 +26,17 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    // Handle profile image path
+    const profileImagePath = file
+      ? `/temp/${file.filename}` // Path relative to public folder
+      : null;
+
     const userData: any = {
       name: dto.name,
       email: dto.email,
       password: hashedPassword,
       role: dto.role,
+      profileImage: profileImagePath,
     };
 
     // If recruiter, create a company
