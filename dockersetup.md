@@ -7,32 +7,31 @@
 - It will show Docker version 27.x.x, build ...
 
 # 🧱 Step 2 — Pull the PostgreSQL image
+
 Docker uses “images” (blueprints for containers).
 Run this in your terminal:
 
 - docker pull postgres
 
 # 🧩 Step 3 — Run PostgreSQL container
+
 Now, let’s create and run your own database container:
 
 docker run --name hireiq-db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=hireiq_db \
-  -p 5432:5432 \
-  -d postgres
-
+ -e POSTGRES_USER=postgres \
+ -e POSTGRES_PASSWORD=postgres \
+ -e POSTGRES_DB=hireiq_db \
+ -p 5432:5432 \
+ -d postgres
 
 ✅ Verify it’s running:
 
 - docker ps
 
-
 You should see:
 
-CONTAINER ID   IMAGE      COMMAND                  STATUS         PORTS
-xxxxxx         postgres   "docker-entrypoint..."   Up ...         0.0.0.0:5432->5432/tcp
-
+CONTAINER ID IMAGE COMMAND STATUS PORTS
+xxxxxx postgres "docker-entrypoint..." Up ... 0.0.0.0:5432->5432/tcp
 
 # 🧠 Step 4 — (Optional) Check logs
 
@@ -40,7 +39,7 @@ docker logs hireiq-db
 
 You’ll see lines showing PostgreSQL starting successfully.
 
-# Add DATABASE_URL as env variable in .env file 
+# Add DATABASE_URL as env variable in .env file
 
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hireiq_db?schema=public"
 
@@ -62,32 +61,39 @@ hireiq_db=#
 
 Type \q to exit.
 
-# Steps to run 
+# Steps to run
 
 1. first
 
 # List running containers
+
 docker ps
 
 # Stop a container
+
 docker stop hireiq-db
 
 # Start a container
+
 docker start hireiq-db
 
 # Remove a container (careful: deletes data unless volumes used)
+
 docker rm hireiq-db
 
 # See logs
+
 docker logs hireiq-db
 
-2. second 
+2. second
 
 # Install CLI if not installed
+
 brew install libpq
 brew link --force libpq
 
 # Connect to DB
+
 psql -h localhost -U postgres -d hireiq_db
 
 Then you can run SQL commands:
@@ -97,7 +103,6 @@ Then you can run SQL commands:
 
 -- Exit
 \q
-
 
 # 3️⃣ Prisma
 
@@ -114,14 +119,16 @@ Use PrismaClient in your app to read/write data.
 Commands
 
 # Generate Prisma client
+
 npx prisma generate
 
 # Run migrations
+
 npx prisma migrate dev --name init
 
 # Open Prisma Studio (web GUI to view DB)
-npx prisma studio
 
+npx prisma studio
 
 # 1️⃣ npx prisma generate
 

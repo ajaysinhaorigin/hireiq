@@ -20,8 +20,6 @@ model User {
   createdAt    DateTime @default(now())
 }
 
-
-
 enum Role { 
   EMPLOYEE
   RECRUITER

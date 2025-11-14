@@ -1,19 +1,18 @@
 /apps
- ├─ client/          # all frontend projects (Next.js)
- │   ├─ web/         # web frontend
- │   ├─ mobile/      # mobile frontend
- │   └─ ...
- ├─ api/                 # all backend projects (NestJS)
- │   ├─ api-hireiq/      # backend
- │   └─ ...
+├─ client/ # all frontend projects (Next.js)
+│ ├─ web/ # web frontend
+│ ├─ mobile/ # mobile frontend
+│ └─ ...
+├─ api/ # all backend projects (NestJS)
+│ ├─ api-hireiq/ # backend
+│ └─ ...
 /packages
- ├─ db/                  # Prisma schema & migrations
- ├─ ui/                  # Shared UI components/design system
- ├─ shared/              # Shared DTOs, types, constants
+├─ db/ # Prisma schema & migrations
+├─ ui/ # Shared UI components/design system
+├─ shared/ # Shared DTOs, types, constants
 /infra
- ├─ terraform/           # IaC
- ├─ k8s/                 # Deployment configs
-
+├─ terraform/ # IaC
+├─ k8s/ # Deployment configs
 
 ## Architectural Style
 
@@ -27,6 +26,7 @@ If/when scale demands, modules (like Transactions or Recommendations) can be pul
 DDD ensures business logic (e.g., card reward calculations) lives in the domain layer, isolated from framework/infrastructure.
 
 ## Layering:
+
 Presentation Layer → Controllers (NestJS), Next.js pages.
 Application Layer → Services (orchestration, no business rules).
 Domain Layer → Entities, Value Objects, Business Logic (card reward engine, MCC mapping).
@@ -46,7 +46,6 @@ Scalable: Serverless + modular → handle spikes.
 Testable: Unit/E2E setup, contracts.
 Reusable: Shared monorepo + API-first.
 Fast: Optimized infra (Vercel + managed DBs).
-
 
 ## STEPS: FOR TO CREATE THE REPO
 
@@ -71,75 +70,74 @@ Fast: Optimized infra (Vercel + managed DBs).
         "format": "prettier --write ."
     },
 
-
-# 2. Create 
+# 2. Create
 
 1.  turbo.json :
 
     {
     "$schema": "https://turbo.build/schema.json",
     "pipeline": {
-        "build": {
-        "dependsOn": ["^build"],
-        "outputs": [".next/**", "dist/**"]
-        },
-        "dev": {
-        "cache": false,
-        "persistent": true
-        },
-        "lint": {
-        "outputs": []
-        },
-        "test": {
-        "outputs": []
-        }
+    "build": {
+    "dependsOn": ["^build"],
+    "outputs": [".next/**", "dist/**"]
+    },
+    "dev": {
+    "cache": false,
+    "persistent": true
+    },
+    "lint": {
+    "outputs": []
+    },
+    "test": {
+    "outputs": []
+    }
     }
     }
 
-2. pnpm-workspace.yaml
+2.  pnpm-workspace.yaml
 
     packages:
-  - "apps/*/*"    # all frontend & backend apps - 
-  - "packages/*"  # shared libraries
 
+- "apps/_/_" # all frontend & backend apps -
+- "packages/\*" # shared libraries
 
-  - "apps/*/*"  this defines the level of apps where we can add node modules like in this case setup should be apps/client/web there will next app with node modules
+- "apps/_/_" this defines the level of apps where we can add node modules like in this case setup should be apps/client/web there will next app with node modules
 
 3. tsconfig.json or tsconfig.base.json
 
-    {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "jsx": "preserve",
-        "baseUrl": ".",
-        "paths": {
-        "@hireiq/shared/*": ["packages/shared/src/*"],  ----> path should be exactly same and also the the name @zomint/shared/* - don't messed it up.
-        "@hireiq/ui/*": ["packages/ui/src/*"].          ----->
-        }
-    }
-    }
-
+   {
+   "compilerOptions": {
+   "target": "esnext",
+   "module": "esnext",
+   "moduleResolution": "node",
+   "strict": true,
+   "esModuleInterop": true,
+   "skipLibCheck": true,
+   "forceConsistentCasingInFileNames": true,
+   "jsx": "preserve",
+   "baseUrl": ".",
+   "paths": {
+   "@hireiq/shared/_": ["packages/shared/src/_"], ----> path should be exactly same and also the the name @zomint/shared/_ - don't messed it up.
+   "@hireiq/ui/_": ["packages/ui/src/*"]. ----->
+   }
+   }
+   }
 
 # 🏗️ Step 4. Create a Next.js Web App
+
     mkdir apps && cd apps
     mkdir web api
     cd web
 
     pnpm create next-app cardgpt
 
-
 # 🏗️ Step 5. Create a NestJS API App
+
     pnpm dlx @nestjs/cli new api-hireiq --package-manager=pnpm or npx @nestjs/cli new <project-name> or pnpm dlx @nestjs/cli new . --skip-install (if files and folders ar not visible)
     cd api-cardgpt
 
-
 # To Setup packages folder
+
     packages/
     ├─ shared/    # DTOs, types, constants
     ├─ ui/        # Shared UI components (for frontend)
@@ -147,7 +145,7 @@ Fast: Optimized infra (Vercel + managed DBs).
     ├─ db/        # Prisma client / DB logic
     └─ jobs/      # Queue / background jobs
 
-    And 
+    And
 
         package-name/
     ├─ package.json
@@ -169,11 +167,11 @@ Fast: Optimized infra (Vercel + managed DBs).
 
     cd ui
     mkdir src
-    
+
     create package.json with name that metioned in the tsconfig.json path (must contain these two files package.json and tsconfi.json)
 
     {
-    "name": "@hireiq/ui",              -------- name should be same with the root level tsconfig 
+    "name": "@hireiq/ui",              -------- name should be same with the root level tsconfig
     "version": "1.0.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -201,20 +199,18 @@ Fast: Optimized infra (Vercel + managed DBs).
     "compilerOptions": {
         "outDir": "dist",
         "jsx": "react-jsx",       // <-- Add this line to remove the jsx error
-        "declaration": true,        
+        "declaration": true,
         "emitDeclarationOnly": false
     },
     "include": ["src"]
     }
 
-
-## To use packages folder ui components and shared files inside the web and api folder 
+## To use packages folder ui components and shared files inside the web and api folder
 
 1. Add the right path inside tsconfig.json inside web/cardgpt or api/api-cardgpt and similar for other apps
 
-    "paths": {
-      "@/*": ["./src/*"],
-      "@hireiq/shared": ["../../../packages/shared/src"],
-      "@hireiq/ui": ["../../../packages/ui/src"]
-    }
-
+   "paths": {
+   "@/_": ["./src/_"],
+   "@hireiq/shared": ["../../../packages/shared/src"],
+   "@hireiq/ui": ["../../../packages/ui/src"]
+   }

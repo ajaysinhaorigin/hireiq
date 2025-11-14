@@ -8,15 +8,15 @@
   "prisma": {
     "schema": "src/prisma/schema.prisma"
   },
-"scripts": {
-  "generate": "prisma generate --schema=src/prisma/schema.prisma",
-  "prisma:merge": "cat src/prisma/base.prisma src/prisma/models/*.prisma > src/prisma/schema.prisma",
-  "migrate": "pnpm run prisma:merge && prisma migrate dev --name init",
-  "db:reset": "pnpm run prisma:merge && npx prisma migrate reset --force",
-  "db:generate": "pnpm run prisma:merge && prisma generate --schema=src/prisma/schema.prisma",
-  "db:migrate": "pnpm run prisma:merge && prisma migrate dev --name auto_sync",
-  "build": "tsc -p tsconfig.json"
-},
+  "scripts": {
+    "generate": "prisma generate --schema=src/prisma/schema.prisma",
+    "prisma:merge": "cat src/prisma/base.prisma src/prisma/models/*.prisma > src/prisma/schema.prisma",
+    "migrate": "pnpm run prisma:merge && prisma migrate dev --name init",
+    "db:reset": "pnpm run prisma:merge && npx prisma migrate reset --force",
+    "db:generate": "pnpm run prisma:merge && prisma generate --schema=src/prisma/schema.prisma",
+    "db:migrate": "pnpm run prisma:merge && prisma migrate dev --name auto_sync",
+    "build": "tsc -p tsconfig.json"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -12,7 +12,7 @@
     "paths": {
       "@hireiq/shared/*": ["packages/shared/src/*"],
       "@hireiq/ui/*": ["packages/ui/src/*"],
-      "@hireiq/db/*":["packages/db/src/*"]
+      "@hireiq/db/*": ["packages/db/src/*"]
     }
   }
 }

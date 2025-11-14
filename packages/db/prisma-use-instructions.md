@@ -17,6 +17,7 @@ pnpm run db:migrate
 
 Merge models again (to be sure)
 Run prisma migrate dev and create/alter tables in your PostgreSQL DB
+k
 
 # 💣 4️⃣ (Optional) Reset database completely
 
@@ -41,4 +42,6 @@ You don’t care about losing existing DB data.
 npx prisma migrate reset  
 pnpm run db:migrate  
 npx prisma migrate dev --name init
-pnpm run db:reset     
+pnpm run db:reset
+
+pnpm prisma studio

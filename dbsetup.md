@@ -1,4 +1,4 @@
-# steps 
+# steps
 
 cd packages/db
 
@@ -9,7 +9,7 @@ npx prisma init
 This will create
 
 packages/db/
- ├── prisma/
- │   └── schema.prisma
- ├── package.json
- ├── .env
+├── prisma/
+│ └── schema.prisma
+├── package.json
+├── .env
