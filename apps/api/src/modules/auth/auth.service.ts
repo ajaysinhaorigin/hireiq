@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   BadRequestException,
@@ -84,6 +83,10 @@ export class AuthService {
     });
 
     const { password, ...userWithoutPassword } = user;
-    return { accessToken, user: userWithoutPassword };
+    return {
+      accessToken,
+      user: userWithoutPassword,
+      message: 'User logged in successfully',
+    };
   }
 }
