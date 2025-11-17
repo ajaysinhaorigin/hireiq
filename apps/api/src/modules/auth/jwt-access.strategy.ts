@@ -18,6 +18,11 @@ export class AccessTokenStrategy extends PassportStrategy(
   }
 
   validate(payload: any) {
-    return { userId: payload.sub, email: payload.email, role: payload.role };
+    return {
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+      name: payload.name,
+    };
   }
 }

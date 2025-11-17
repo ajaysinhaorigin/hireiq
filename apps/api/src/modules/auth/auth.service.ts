@@ -10,6 +10,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './dto/register.dto';
 import { uploadOnCloudinary } from '@/utils/cloudinary';
+import { IResponseWithUser } from '@/interfaces';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,30 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService
   ) {}
+
+  async generateAccessAndRefreshToken(user: any) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      expiresIn: '15m',
+    });
+
+    const refreshToken = await this.jwtService.signAsync(
+      { id: user.id },
+      {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+        expiresIn: '7d',
+      }
+    );
+
+    return { accessToken, refreshToken };
+  }
 
   async saveHashedRefreshToken(userId: string, refreshToken: string) {
     const hashed = await bcrypt.hash(refreshToken, 10);
@@ -41,8 +66,6 @@ export class AuthService {
       profileImage = await uploadOnCloudinary(file.path);
     }
 
-    console.log('avatar', profileImage);
-
     const userData: any = {
       name: dto.name,
       email: dto.email,
@@ -65,7 +88,7 @@ export class AuthService {
         data: { recruiterId: user.id },
       });
 
-      const { password, ...userWithoutPassword } = user;
+      const { password, refreshToken, ...userWithoutPassword } = user;
       return {
         message: 'Recruiter registered successfully',
         user: userWithoutPassword,
@@ -73,7 +96,7 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.create({ data: userData });
-    const { password, ...userWithoutPassword } = user;
+    const { password, refreshToken, ...userWithoutPassword } = user;
 
     return {
       message: 'User registered successfully',
@@ -92,21 +115,10 @@ export class AuthService {
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.ACCESS_TOKEN_SECRET,
-      expiresIn: '15m',
-    });
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.generateAccessAndRefreshToken(user);
 
-    const refreshToken = await this.jwtService.signAsync(
-      { sub: user.id },
-      {
-        secret: process.env.REFRESH_TOKEN_SECRET,
-        expiresIn: '7d',
-      }
-    );
-
-    await this.saveHashedRefreshToken(user.id, refreshToken);
+    await this.saveHashedRefreshToken(user.id, newRefreshToken);
 
     const options = {
       httpOnly: true,
@@ -114,20 +126,124 @@ export class AuthService {
       sameSite: 'strict',
     };
 
-    res.cookie('accessToken', accessToken, {
-      ...options,
-      maxAge: 1 * 24 * 60 * 60 * 1000,
-    });
-    res.cookie('refreshToken', refreshToken, {
-      ...options,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    const { password, refreshToken, ...userWithoutPassword } = user;
 
-    const { password, ...userWithoutPassword } = user;
-    return {
-      accessToken,
-      user: userWithoutPassword,
-      message: 'User logged in successfully',
-    };
+    return res
+      .status(200)
+      .cookie('accessToken', accessToken, {
+        ...options,
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+      })
+      .cookie('refreshToken', newRefreshToken, {
+        ...options,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .json({
+        accessToken,
+        refreshToken: newRefreshToken,
+        user: userWithoutPassword,
+        message: 'User logged in successfully',
+      });
+  }
+
+  async logout(request: IResponseWithUser, res: any) {
+    try {
+      console.log('Logging out user:', request.user?.id);
+
+      await this.prisma.user.update({
+        where: { id: request.user.id },
+        data: { refreshToken: null },
+      });
+
+      const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      };
+
+      return res
+        .status(200)
+        .clearCookie('accessToken', options)
+        .clearCookie('refreshToken', options)
+        .json({
+          data: {},
+          success: true,
+          status: 200,
+          message: 'User logged out successfully',
+        });
+    } catch (error) {
+      console.error('Logout error:', error);
+      return res
+        .status(500)
+        .json({ message: 'Internal server error', error: error.message });
+    }
+  }
+
+  async refreshAccessToken(request: any, res: any) {
+    const incomingRefreshToken =
+      (await request.cookies.refreshToken) || request.body.refreshToken;
+
+    if (!incomingRefreshToken)
+      throw new UnauthorizedException('Invalid refresh token');
+
+    try {
+      const decoded = this.jwtService.verify(incomingRefreshToken, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const isTokenValid = await bcrypt.compare(
+        incomingRefreshToken,
+        user.refreshToken || ''
+      );
+
+      if (!isTokenValid) {
+        throw new UnauthorizedException(
+          'Refresh token is expired or already used'
+        );
+      }
+
+      const { accessToken, refreshToken } =
+        await this.generateAccessAndRefreshToken(user);
+
+      await this.saveHashedRefreshToken(user.id, refreshToken);
+
+      const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      };
+
+      return res
+        .status(200)
+        .cookie('accessToken', accessToken, {
+          ...options,
+          maxAge: 1 * 24 * 60 * 60 * 1000,
+        })
+        .cookie('refreshToken', refreshToken, {
+          ...options,
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+        .json({
+          status: 200,
+          data: {
+            accessToken,
+            refreshToken,
+          },
+          message: 'Access token refreshed',
+        });
+    } catch (error) {
+      console.error('Invalid refresh token', error);
+      return res
+        .status(500)
+        .json({ message: 'Invalid refresh token', error: error.message });
+    }
   }
 }

@@ -13,7 +13,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
         ExtractJwt.fromAuthHeaderAsBearerToken(),
         (request) => request?.cookies?.refreshToken,
       ]),
-      secretOrKey: process.env.ACCESS_TOKEN_SECRET || 'secretkey',
+      secretOrKey: process.env.REFRESH_TOKEN_SECRET || 'secretkey',
     });
   }
 
