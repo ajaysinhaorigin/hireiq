@@ -6,7 +6,6 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-
 model Application {
   id        String            @id @default(uuid())
   
@@ -58,9 +57,7 @@ model Job {
   applications Application[]
 
   createdAt   DateTime @default(now())
-}
-
-model User {
+}model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
@@ -68,6 +65,7 @@ model User {
   role         Role     @default(EMPLOYEE)
   profileImage String?
   bio          String?
+  refreshToken String?
   
   // Employee relationship: which company they work for (if any)
   company      Company? @relation("EmployeeCompany", fields: [companyId], references: [id])

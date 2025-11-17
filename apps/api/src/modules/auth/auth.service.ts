@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './dto/register.dto';
+import { uploadOnCloudinary } from '@/utils/cloudinary';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,15 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService
   ) {}
+
+  async saveHashedRefreshToken(userId: string, refreshToken: string) {
+    const hashed = await bcrypt.hash(refreshToken, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: hashed },
+    });
+  }
 
   async register(dto: RegisterDto, file?: any) {
     const existingUser = await this.prisma.user.findUnique({
@@ -26,35 +36,35 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Handle profile image path
-    const profileImagePath = file
-      ? `/temp/${file.filename}` // Path relative to public folder
-      : null;
+    let profileImage;
+    if (file) {
+      profileImage = await uploadOnCloudinary(file.path);
+    }
+
+    console.log('avatar', profileImage);
 
     const userData: any = {
       name: dto.name,
       email: dto.email,
       password: hashedPassword,
       role: dto.role,
-      profileImage: profileImagePath,
+      profileImage: profileImage?.url || '',
     };
 
-    // If recruiter, create a company
     if (dto.role === Role.RECRUITER && dto.companyName) {
       const company = await this.prisma.company.create({
-        data: {
-          name: dto.companyName,
-        },
+        data: { name: dto.companyName },
       });
 
       userData.recruiterFor = { connect: { id: company.id } };
 
-      // update company recruiter after user is created
       const user = await this.prisma.user.create({ data: userData });
+
       await this.prisma.company.update({
         where: { id: company.id },
         data: { recruiterId: user.id },
       });
+
       const { password, ...userWithoutPassword } = user;
       return {
         message: 'Recruiter registered successfully',
@@ -62,16 +72,16 @@ export class AuthService {
       };
     }
 
-    // Normal user registration
     const user = await this.prisma.user.create({ data: userData });
     const { password, ...userWithoutPassword } = user;
+
     return {
       message: 'User registered successfully',
       user: userWithoutPassword,
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, res: any) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -84,8 +94,33 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_SECRET || 'secretkey',
-      expiresIn: '7d',
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      expiresIn: '15m',
+    });
+
+    const refreshToken = await this.jwtService.signAsync(
+      { sub: user.id },
+      {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+        expiresIn: '7d',
+      }
+    );
+
+    await this.saveHashedRefreshToken(user.id, refreshToken);
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    };
+
+    res.cookie('accessToken', accessToken, {
+      ...options,
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie('refreshToken', refreshToken, {
+      ...options,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     const { password, ...userWithoutPassword } = user;

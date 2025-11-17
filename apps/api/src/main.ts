@@ -3,9 +3,9 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { config } from 'dotenv';
 import { resolve } from 'path';
+import { join } from 'path';
 
 config({
   path: resolve(__dirname, '..', '.env'),

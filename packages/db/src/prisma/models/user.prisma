@@ -6,6 +6,7 @@ model User {
   role         Role     @default(EMPLOYEE)
   profileImage String?
   bio          String?
+  refreshToken String?
   
   // Employee relationship: which company they work for (if any)
   company      Company? @relation("EmployeeCompany", fields: [companyId], references: [id])
