@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from './dto/register.dto';
-import { uploadOnCloudinary } from '@/utils/cloudinary';
+import { deleteFromCloudinary, uploadOnCloudinary } from '@/utils/cloudinary';
 import { IResponseWithUser } from '@/interfaces';
 
 @Injectable()
@@ -244,6 +244,137 @@ export class AuthService {
       return res
         .status(500)
         .json({ message: 'Invalid refresh token', error: error.message });
+    }
+  }
+
+  async changeCurrentPasswordWithOldPassword(req, res: any) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const { password, newPassword } = req.body;
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      });
+
+      return res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      return res
+        .status(500)
+        .json({ message: 'Error changing password', error: error.message });
+    }
+  }
+
+  async getProfile(req: IResponseWithUser, res: any) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+      const { password, refreshToken, ...safeUser } = user;
+
+      return res.status(200).json({
+        data: safeUser,
+        message: 'Profile fetched successfully',
+        success: true,
+        status: 200,
+      });
+    } catch (error) {
+      console.error('Error getting profile:', error);
+      return res
+        .status(500)
+        .json({ message: 'Error getting profile', error: error.message });
+    }
+  }
+
+  async updateProfile(req, res: any) {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: req.user.id },
+        data: {
+          ...(req.body.name && { name: req.body.name }),
+          ...(req.body.email && { email: req.body.email }),
+          ...(req.body.bio && { email: req.body.bio }),
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const { password, refreshToken, ...safeUser } = user;
+      return res.status(200).json({
+        data: safeUser,
+        message: 'Profile updated successfully',
+        success: true,
+        status: 200,
+      });
+    } catch (error) {
+      console.error('Error getting profile:', error);
+      return res
+        .status(500)
+        .json({ message: 'Error getting profile', error: error.message });
+    }
+  }
+
+  async updateProfileImage(req, res: any) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      let profileImage;
+      if (req.file) {
+        profileImage = await uploadOnCloudinary(req.file.path);
+      }
+
+      let updatedUser = user;
+
+      if (profileImage) {
+        await deleteFromCloudinary(user.profileImage);
+
+        updatedUser = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { profileImage: profileImage.url },
+        });
+      }
+
+      const { password, refreshToken, ...safeUser } = updatedUser;
+
+      return res.status(200).json({
+        data: safeUser,
+        message: 'Profile image updated successfully',
+        success: true,
+        status: 200,
+      });
+    } catch (error) {
+      console.error('Error while updating profile image', error);
+      return res.status(500).json({
+        message: 'Error while updating profile image',
+        error: error.message,
+      });
     }
   }
 }

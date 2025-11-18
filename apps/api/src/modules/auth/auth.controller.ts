@@ -16,7 +16,6 @@ import { AuthGuard } from '@nestjs/passport';
 import type { IResponseWithUser } from '@/interfaces';
 import { multerConfig } from 'src/config/multer.config';
 import { FileInterceptor } from '@nestjs/platform-express';
-// import { Request } from 'express';
 
 @Controller('api/v1/user')
 export class AuthController {
@@ -49,36 +48,49 @@ export class AuthController {
   @Post('refresh-token')
   async refreshAccessToken(
     @Request() req: Request,
-    @Res({ passthrough: true }) res: any
+    @Res({ passthrough: true }) res: Response
   ) {
-    console.log('called ');
     return await this.authService.refreshAccessToken(req, res);
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Post('change-password')
   async changeCurrentPassword(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: any
+    @Request() req: IResponseWithUser,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return await this.authService.login(dto, res);
+    return await this.authService.changeCurrentPasswordWithOldPassword(
+      req,
+      res
+    );
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Get('profile')
-  getProfile(@Request() req: IResponseWithUser) {
-    return req.user;
+  async getProfile(
+    @Request() req: IResponseWithUser,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    return await this.authService.getProfile(req, res);
   }
 
   @UseGuards(AuthGuard('jwt-access'))
-  @Get('/update-profile')
-  updateProfile(@Request() req: IResponseWithUser) {
-    return req.user;
+  @Post('/update-profile')
+  async updateProfile(
+    @Request() req: IResponseWithUser,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    console.log('req.body', req.body);
+    return await this.authService.updateProfile(req, res);
   }
 
   @UseGuards(AuthGuard('jwt-access'))
-  @Get('/profileImage')
-  updateProfileImage(@Request() req: IResponseWithUser) {
-    return req.user;
+  @Post('/profile-image')
+  @UseInterceptors(FileInterceptor('profileImage', multerConfig))
+  async updateProfileImage(
+    @Request() req: IResponseWithUser,
+    @Res() res: Response
+  ) {
+    return await this.authService.updateProfileImage(req, res);
   }
 }

@@ -10,6 +10,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const getPublicId = (url) => {
+  // Example:
+  // https://res.cloudinary.com/.../v12345/abcdefg.png
+  const parts = url.split('/');
+  const fileName = parts[parts.length - 1]; // "abcdefg.png"
+  return fileName.split('.')[0]; // "abcdefg"
+};
+
 const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
@@ -28,7 +36,8 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteFromCloudinary = async (publicURL) => {
   try {
-    const result = await cloudinary.uploader.destroy(publicURL);
+    const publicId = getPublicId(publicURL);
+    const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
     console.log('error at cloudinarydelete function', error);
