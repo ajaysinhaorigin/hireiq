@@ -6,6 +6,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { join } from 'path';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 config({
   path: resolve(__dirname, '..', '.env'),
@@ -33,6 +34,17 @@ async function bootstrap() {
       transform: true, // Automatically transform payloads to DTO instances
     })
   );
+
+  // Swagger Config
+  const config = new DocumentBuilder()
+    .setTitle('HireIQ API')
+    .setDescription('API documentation for HireIQ backend')
+    .setVersion('1.0')
+    .addBearerAuth() // Enables JWT auth in Swagger
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(process.env.PORT ?? 4000);
 }

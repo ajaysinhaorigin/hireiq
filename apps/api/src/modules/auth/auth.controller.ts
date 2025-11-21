@@ -16,7 +16,9 @@ import { AuthGuard } from '@nestjs/passport';
 import type { IResponseWithUser } from '@/interfaces';
 import { multerConfig } from 'src/config/multer.config';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('api/v1/user')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -28,6 +30,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Login user' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response
