@@ -6,11 +6,17 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { Role } from './dto/register.dto';
 import { deleteFromCloudinary, uploadOnCloudinary } from '@/utils/cloudinary';
 import { IResponseWithUser } from '@/interfaces';
+import {
+  ChangePasswordDto,
+  LoginDto,
+  RegisterDto,
+  RegisterRequestDto,
+  Role,
+  UpdateProfileDto,
+  UpdateProfileImageDto,
+} from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +58,7 @@ export class AuthService {
     });
   }
 
-  async register(dto: RegisterDto, file?: any) {
+  async register(dto: RegisterRequestDto, file?: any) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -148,8 +154,6 @@ export class AuthService {
 
   async logout(request: IResponseWithUser, res: any) {
     try {
-      console.log('Logging out user:', request.user?.id);
-
       await this.prisma.user.update({
         where: { id: request.user.id },
         data: { refreshToken: null },
@@ -247,7 +251,11 @@ export class AuthService {
     }
   }
 
-  async changeCurrentPasswordWithOldPassword(req, res: any) {
+  async changeCurrentPasswordWithOldPassword(
+    req,
+    dto: ChangePasswordDto,
+    res: any
+  ) {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: req.user.id },
@@ -257,8 +265,8 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
-      const { password, newPassword } = req.body;
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const { oldPassword, newPassword } = dto;
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Current password is incorrect');
@@ -305,14 +313,14 @@ export class AuthService {
     }
   }
 
-  async updateProfile(req, res: any) {
+  async updateProfile(req, dto: UpdateProfileDto, res: any) {
     try {
       const user = await this.prisma.user.update({
         where: { id: req.user.id },
         data: {
-          ...(req.body.name && { name: req.body.name }),
-          ...(req.body.email && { email: req.body.email }),
-          ...(req.body.bio && { email: req.body.bio }),
+          ...(dto.name && { name: dto.name }),
+          ...(dto.email && { email: dto.email }),
+          ...(dto.bio && { email: dto.bio }),
         },
       });
 
@@ -335,7 +343,7 @@ export class AuthService {
     }
   }
 
-  async updateProfileImage(req, res: any) {
+  async updateProfileImage(req, file: any, res: any) {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: req.user.id },
@@ -346,8 +354,8 @@ export class AuthService {
       }
 
       let profileImage;
-      if (req.file) {
-        profileImage = await uploadOnCloudinary(req.file.path);
+      if (file) {
+        profileImage = await uploadOnCloudinary(file.path);
       }
 
       let updatedUser = user;

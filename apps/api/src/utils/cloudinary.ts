@@ -11,7 +11,6 @@ cloudinary.config({
 });
 
 const getPublicId = (url) => {
-  // Example:
   // https://res.cloudinary.com/.../v12345/abcdefg.png
   const parts = url.split('/');
   const fileName = parts[parts.length - 1]; // "abcdefg.png"
