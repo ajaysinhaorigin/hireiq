@@ -18,7 +18,6 @@ import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import {
   ChangePasswordDto,
   LoginDto,
-  RegisterDto,
   RegisterRequestDto,
   UpdateProfileDto,
   UpdateProfileImageDto,
