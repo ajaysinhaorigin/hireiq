@@ -6,6 +6,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { join } from 'path';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 config({
   path: resolve(__dirname, '..', '.env'),
@@ -18,7 +19,7 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN?.split(',') || '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: '*',
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -34,7 +35,30 @@ async function bootstrap() {
     })
   );
 
-  await app.listen(process.env.PORT ?? 4000);
+  // main.ts
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('HireIQ API')
+    .setDescription('API documentation for HireIQ backend')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'access-token' // <-- name of this security scheme
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true, // 👈 keeps your token even after refresh
+    },
+  });
+
+  await app.listen(process.env.PORT ?? 8000);
 }
 
 bootstrap();

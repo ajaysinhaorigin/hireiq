@@ -11,7 +11,12 @@ export class AccessTokenStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         ExtractJwt.fromAuthHeaderAsBearerToken(),
-        (request) => request?.cookies?.accessToken,
+        (request) => {
+          let header = request?.headers?.authorization || '';
+          header = header.replace(/Bearer\s*/gi, '');
+          const cookieToken = request?.cookies?.accessToken;
+          return cookieToken || header;
+        },
       ]),
       secretOrKey: process.env.ACCESS_TOKEN_SECRET || 'secretkey',
     });
