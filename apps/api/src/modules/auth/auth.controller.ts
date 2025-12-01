@@ -36,7 +36,8 @@ export class AuthController {
   })
   @UseInterceptors(FileInterceptor('profileImage', multerConfig))
   async register(@Body() dto: RegisterRequestDto, @UploadedFile() file?: File) {
-    return this.authService.register(dto, file);
+    console.log('Register DTO:', dto, 'File:', file);
+    return await this.authService.register(dto, file);
   }
 
   @Post('login')

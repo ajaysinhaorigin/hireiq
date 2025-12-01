@@ -38,7 +38,6 @@ export class RegisterDto {
 
 export class RegisterRequestDto {
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
   name: string;
 
@@ -47,26 +46,27 @@ export class RegisterRequestDto {
   email: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsString()
   password: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: Role })
   @IsEnum(Role)
   role: Role;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   companyName?: string;
 
+  // 👇 ADD THIS
   @ApiProperty({
     type: 'string',
     format: 'binary',
     required: false,
   })
+  @IsOptional()
   profileImage?: any;
 }
-
 export class LoginDto {
   @ApiProperty()
   @IsEmail()
