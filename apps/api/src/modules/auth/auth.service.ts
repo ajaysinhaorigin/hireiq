@@ -13,10 +13,10 @@ import {
   LoginDto,
   RegisterDto,
   RegisterRequestDto,
-  Role,
   UpdateProfileDto,
   UpdateProfileImageDto,
 } from './dto/auth.dto';
+import { Role } from '@/enum';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +35,7 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.ACCESS_TOKEN_SECRET,
-      expiresIn: '15m',
+      expiresIn: '1d',
     });
 
     const refreshToken = await this.jwtService.signAsync(
@@ -80,27 +80,6 @@ export class AuthService {
       role: dto.role,
       profileImage: profileImage?.url || '',
     };
-
-    if (dto.role === Role.RECRUITER && dto.companyName) {
-      const company = await this.prisma.company.create({
-        data: { name: dto.companyName },
-      });
-
-      userData.recruiterFor = { connect: { id: company.id } };
-
-      const user = await this.prisma.user.create({ data: userData });
-
-      await this.prisma.company.update({
-        where: { id: company.id },
-        data: { recruiterId: user.id },
-      });
-
-      const { password, refreshToken, ...userWithoutPassword } = user;
-      return {
-        message: 'Recruiter registered successfully',
-        user: userWithoutPassword,
-      };
-    }
 
     const user = await this.prisma.user.create({ data: userData });
     const { password, refreshToken, ...userWithoutPassword } = user;

@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
@@ -15,24 +16,29 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { AssignEmployeeDto } from './dto/assign-employee.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Company')
 @ApiBearerAuth('access-token')
+@ApiTags('Company')
 @Controller('api/v1/company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @UseGuards(AuthGuard('jwt-access'))
   @Post('create')
-  async create(@Body() dto: CreateCompanyDto, @Req() req: any) {
-    const user = req.user; // { id, role } from JWT
-    return await this.companyService.create(dto, user);
+  async create(
+    @Body() dto: CreateCompanyDto,
+    @Req() req: any,
+    @Res() res: Response
+  ) {
+    return await this.companyService.create(dto, req.user, res);
   }
 
+  @UseGuards(AuthGuard('jwt-access'))
   @Get()
   findAll() {
     return this.companyService.findAll();
   }
 
+  @UseGuards(AuthGuard('jwt-access'))
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.companyService.findOne(id);

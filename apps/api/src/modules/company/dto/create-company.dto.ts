@@ -1,11 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class CreateCompanyDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
   name: string;
+
+  @IsString()
+  @MinLength(3)
+  @Matches(/^[a-z0-9-]+$/, {
+    message: 'Handle can only contain lowercase letters, numbers, and hyphens',
+  })
+  handle: string; // USER-ENTERED USERNAME
 
   @ApiProperty()
   @IsOptional()
