@@ -6,11 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-export enum Role {
-  EMPLOYEE = 'EMPLOYEE',
-  RECRUITER = 'RECRUITER',
-}
+import { Role } from '@/enum';
 
 export class RegisterDto {
   @ApiProperty()

@@ -1,15 +1,14 @@
 model Company {
   id          String   @id @default(uuid())
   name        String
+  handle      String   @unique     // <--- UNIQUE USERNAME
   website     String?
   description String?
   location    String?
 
   employees   User[]   @relation("EmployeeCompany")
-
   recruiter   User?    @relation("CompanyRecruiter", fields: [recruiterId], references: [id])
   recruiterId String?  @unique
-
   jobs        Job[]
   createdAt   DateTime @default(now())
 }

@@ -45,3 +45,9 @@ npx prisma migrate dev --name init
 pnpm run db:reset
 
 pnpm prisma studio
+
+# Steps to change existing table
+
+pnpm run db:generate
+pnpm run db:migrate
+pnpm prisma studio
