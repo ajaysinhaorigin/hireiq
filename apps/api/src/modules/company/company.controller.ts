@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Req,
+  Request,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,8 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { AssignEmployeeDto } from './dto/assign-employee.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { IResponseWithUser } from '@/interfaces';
+import { ApiResponse } from '@/utils';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Company')
@@ -26,43 +29,50 @@ export class CompanyController {
   @Post('create')
   async create(
     @Body() dto: CreateCompanyDto,
-    @Req() req: any,
+    @Request() req: IResponseWithUser,
     @Res() res: Response
   ) {
-    return await this.companyService.create(dto, req.user, res);
+    const company = await this.companyService.create(dto, req.user);
+    return new ApiResponse(201, company, 'Company created successfully');
   }
 
   @UseGuards(AuthGuard('jwt-access'))
-  @Get()
-  findAll() {
-    return this.companyService.findAll();
+  @Get('all')
+  async findAll() {
+    const companies = await this.companyService.findAll();
+    return new ApiResponse(200, companies, 'Companies fetched successfully');
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const company = await this.companyService.findOne(id);
+    return new ApiResponse(200, company, 'Company fetched successfully');
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() dto: UpdateCompanyDto,
     @Req() req: any
   ) {
-    const user = req.user;
-    return this.companyService.update(id, dto, user);
+    const updatedCompany = await this.companyService.update(id, dto, req.user);
+    return new ApiResponse(200, updatedCompany, 'Company updated successfully');
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Post(':id/assign-employee')
-  assignEmployee(
+  async assignEmployee(
     @Param('id') companyId: string,
     @Body() dto: AssignEmployeeDto,
     @Req() req: any
   ) {
-    const user = req.user;
-    return this.companyService.assignEmployee(companyId, dto, user);
+    const result = await this.companyService.assignEmployee(
+      companyId,
+      dto,
+      req.user
+    );
+    return new ApiResponse(200, result, 'Employee assigned successfully');
   }
 }

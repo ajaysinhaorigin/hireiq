@@ -7,6 +7,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { join } from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ApiExceptionFilter, ApiResponseInterceptor } from './utils';
 
 config({
   path: resolve(__dirname, '..', '.env'),
@@ -57,6 +58,8 @@ async function bootstrap() {
       persistAuthorization: true, // 👈 keeps your token even after refresh
     },
   });
+  app.useGlobalFilters(new ApiExceptionFilter());
+  app.useGlobalInterceptors(new ApiResponseInterceptor());
 
   await app.listen(process.env.PORT ?? 8000);
 }

@@ -232,7 +232,7 @@ export class AuthService {
   }
 
   async changeCurrentPasswordWithOldPassword(
-    req,
+    req: any,
     dto: ChangePasswordDto,
     res: any
   ) {
