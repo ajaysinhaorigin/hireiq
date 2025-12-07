@@ -15,11 +15,11 @@ export class CreateCompanyDto {
   name: string;
 
   @IsString()
-  @MinLength(3)
+  @ApiProperty()
   @Matches(/^[a-z0-9-]+$/, {
     message: 'Handle can only contain lowercase letters, numbers, and hyphens',
   })
-  handle: string; // USER-ENTERED USERNAME
+  handle: string;
 
   @ApiProperty()
   @IsOptional()
